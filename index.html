@@ -2,7 +2,15 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <title>Diseña Tu Oficina Gamer</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap"
@@ -21,6 +29,10 @@
         color: #e0e0e0;
         min-height: 100vh;
         padding: 20px;
+        -webkit-font-smoothing: antialiased;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior: none;
       }
 
       .container {
@@ -159,10 +171,13 @@
         position: absolute;
         cursor: move;
         user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
         transition:
           transform 0.1s ease,
           filter 0.2s ease;
         filter: drop-shadow(3px 3px 8px rgba(0, 0, 0, 0.3));
+        -webkit-touch-callout: none;
       }
 
       .item-display:hover {
@@ -178,6 +193,7 @@
         opacity: 0.9;
         z-index: 2000 !important;
         filter: drop-shadow(8px 8px 20px rgba(168, 85, 247, 0.6));
+        transition: none;
       }
 
       .item-content {
@@ -1085,7 +1101,9 @@
       }
 
       function startDrag(e) {
-        e.preventDefault();
+        if (e.type === "touchstart") {
+          e.preventDefault();
+        }
         const itemId = parseInt(e.currentTarget.dataset.itemId);
         const item = items.find((i) => i.id === itemId);
 
@@ -1107,14 +1125,25 @@
           offsetY = e.clientY - rect.top;
         }
 
-        document.addEventListener("mousemove", drag);
-        document.addEventListener("mouseup", stopDrag);
-        document.addEventListener("touchmove", drag);
-        document.addEventListener("touchend", stopDrag);
+        document.addEventListener("mousemove", drag, { passive: true });
+        document.addEventListener("mouseup", stopDrag, { passive: true });
+        document.addEventListener("touchmove", drag, { passive: false });
+        document.addEventListener("touchend", stopDrag, { passive: true });
+
+        // Haptic feedback on mobile
+        if (navigator.vibrate) {
+          navigator.vibrate(10);
+        }
       }
+
+      let dragFrameId = null;
 
       function drag(e) {
         if (!draggedItem) return;
+
+        if (e.type === "touchmove") {
+          e.preventDefault();
+        }
 
         const containerRect = document
           .getElementById("selectedItems")
@@ -1138,7 +1167,13 @@
         draggedItem.x = Math.max(0, Math.min(95, draggedItem.x));
         draggedItem.y = Math.max(0, Math.min(90, draggedItem.y));
 
-        renderItems();
+        if (dragFrameId) {
+          cancelAnimationFrame(dragFrameId);
+        }
+        dragFrameId = requestAnimationFrame(() => {
+          renderItems();
+          dragFrameId = null;
+        });
       }
 
       function stopDrag(e) {
