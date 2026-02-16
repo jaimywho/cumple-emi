@@ -1,0 +1,1259 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diseña Tu Oficina Gamer</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Outfit", sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+        color: #e0e0e0;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 2.8em;
+        font-weight: 700;
+        background: linear-gradient(
+          135deg,
+          #005f73 0%,
+          #0a9396 50%,
+          #94d2bd 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -1px;
+      }
+
+      .instructions {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #94a3b8;
+        font-size: 1em;
+        font-weight: 300;
+      }
+
+      .office-preview {
+        background: #f8f6f3;
+        border-radius: 24px;
+        margin-bottom: 30px;
+        height: 600px;
+        position: relative;
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+      }
+
+      /* Room structure - flat front view */
+      .room {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Floor */
+      .floor {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 45%;
+        background: linear-gradient(to bottom, #d4b896 0%, #c8ac8a 100%);
+        border-top: 3px solid #a89878;
+      }
+
+      .floor::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 120px,
+          rgba(0, 0, 0, 0.05) 120px,
+          rgba(0, 0, 0, 0.05) 122px
+        );
+      }
+
+      /* Back wall */
+      .wall {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 58%;
+        background: linear-gradient(to bottom, #5a5a68 0%, #4a4a58 100%);
+        border-bottom: 3px solid #3a3a48;
+      }
+
+      /* Accent wall section (brick) */
+      .accent-wall {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 30%;
+        height: 58%;
+        background:
+          repeating-linear-gradient(
+            0deg,
+            #8b5a3c 0px,
+            #8b5a3c 25px,
+            #7a4a2c 25px,
+            #7a4a2c 28px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            #8b5a3c 0px,
+            #8b5a3c 60px,
+            #7a4a2c 60px,
+            #7a4a2c 63px
+          );
+        box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Baseboards */
+      .baseboard {
+        position: absolute;
+        bottom: 45%;
+        left: 0;
+        right: 0;
+        height: 15px;
+        background: linear-gradient(to bottom, #f0f0eb 0%, #e0e0db 100%);
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Items container */
+      #selectedItems {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+      }
+
+      .item-display {
+        position: absolute;
+        cursor: move;
+        user-select: none;
+        transition:
+          transform 0.1s ease,
+          filter 0.2s ease;
+        filter: drop-shadow(3px 3px 8px rgba(0, 0, 0, 0.3));
+      }
+
+      .item-display:hover {
+        filter: drop-shadow(5px 5px 15px rgba(0, 245, 255, 0.5));
+        z-index: 1000 !important;
+      }
+
+      .item-display:hover .item-controls {
+        opacity: 1;
+      }
+
+      .item-display.dragging {
+        opacity: 0.9;
+        z-index: 2000 !important;
+        filter: drop-shadow(8px 8px 20px rgba(168, 85, 247, 0.6));
+      }
+
+      .item-content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .item-controls {
+        position: absolute;
+        top: -35px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        padding: 6px;
+        border-radius: 20px;
+        display: flex;
+        gap: 4px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+        pointer-events: all;
+      }
+
+      .control-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+
+      .control-btn:hover {
+        background: rgba(0, 245, 255, 0.3);
+        border-color: #00f5ff;
+        transform: scale(1.1);
+      }
+
+      .control-btn:active {
+        transform: scale(0.95);
+      }
+
+      /* Dog positioned in the room */
+      .dog {
+        position: absolute;
+        bottom: 18%;
+        right: 12%;
+        width: 150px;
+        height: 150px;
+        cursor: pointer;
+        animation: wiggle 2.5s ease-in-out infinite;
+        z-index: 3000;
+        opacity: 0;
+        transition:
+          opacity 0.6s ease,
+          transform 0.3s ease;
+        filter: drop-shadow(5px 8px 15px rgba(0, 0, 0, 0.4));
+      }
+
+      .dog.visible {
+        opacity: 1;
+      }
+
+      .dog:hover {
+        transform: scale(1.1) translateY(-5px);
+        filter: drop-shadow(8px 12px 25px rgba(236, 72, 153, 0.6));
+      }
+
+      .dog svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      @keyframes wiggle {
+        0%,
+        100% {
+          transform: translateY(0) rotate(-1deg);
+        }
+        25% {
+          transform: translateY(-6px) rotate(1deg);
+        }
+        50% {
+          transform: translateY(-2px) rotate(-1deg);
+        }
+        75% {
+          transform: translateY(-4px) rotate(0deg);
+        }
+      }
+
+      .selector-section {
+        background: rgba(15, 23, 42, 0.6);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 16px;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .selector-section h2 {
+        margin-bottom: 16px;
+        color: #00f5ff;
+        font-size: 1.2em;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+      }
+
+      .options {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .option-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1.5px solid rgba(255, 255, 255, 0.15);
+        color: #e0e0e0;
+        padding: 14px 22px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 0.95em;
+        font-weight: 400;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+        font-family: "Outfit", sans-serif;
+      }
+
+      .option-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 245, 255, 0.2);
+        border-color: rgba(0, 245, 255, 0.3);
+      }
+
+      .option-btn.selected {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 245, 255, 0.15) 0%,
+          rgba(168, 85, 247, 0.15) 100%
+        );
+        border-color: #00f5ff;
+        box-shadow: 0 8px 25px rgba(0, 245, 255, 0.3);
+      }
+
+      .option-btn .count-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: linear-gradient(135deg, #00f5ff 0%, #a855f7 100%);
+        color: #0a0a0f;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75em;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(0, 245, 255, 0.4);
+      }
+
+      .option-icon {
+        font-size: 1.6em;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 10000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(10px);
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        background: linear-gradient(
+          135deg,
+          #005f73 0%,
+          #0a9396 50%,
+          #94d2bd 100%
+        );
+        margin: 8% auto;
+        padding: 50px;
+        border-radius: 28px;
+        width: 90%;
+        max-width: 550px;
+        text-align: center;
+        animation: slideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .modal-content::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+          radial-gradient(
+            circle at 20% 30%,
+            rgba(255, 255, 255, 0.2) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 70%,
+            rgba(255, 255, 255, 0.15) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+      }
+
+      @keyframes slideDown {
+        from {
+          transform: translateY(-100px) scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal-content h2 {
+        font-size: 2.2em;
+        margin-bottom: 20px;
+        color: white;
+        font-weight: 700;
+        position: relative;
+        letter-spacing: -0.5px;
+      }
+
+      .modal-content p {
+        font-size: 1.25em;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.95);
+        position: relative;
+        font-weight: 300;
+      }
+
+      .close {
+        color: white;
+        position: absolute;
+        right: 25px;
+        top: 25px;
+        font-size: 32px;
+        font-weight: 300;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: all 0.3s;
+        z-index: 10;
+      }
+
+      .close:hover {
+        opacity: 1;
+        transform: rotate(90deg);
+      }
+
+      .giftcard-amount {
+        font-size: 3.2em;
+        font-weight: 700;
+        margin: 25px 0;
+        color: #fff;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        position: relative;
+        letter-spacing: -1px;
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2em;
+        }
+
+        .office-preview {
+          height: 450px;
+        }
+
+        .dog {
+          width: 100px;
+          height: 100px;
+          bottom: 15%;
+          right: 10%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎮 Diseña Tu Oficina 🎮</h1>
+
+      <p class="instructions">
+        ✨ Haz click para agregar elementos y arrástralos para decorar tu
+        espacio ✨
+      </p>
+
+      <div class="office-preview">
+        <div class="room">
+          <div class="wall"></div>
+          <div class="accent-wall"></div>
+          <div class="baseboard"></div>
+          <div class="floor"></div>
+          <div id="selectedItems"></div>
+        </div>
+        <div class="dog" id="dog" onclick="showSurprise()">
+          <svg viewBox="0 0 300 350" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Gradiente para pelaje negro -->
+              <radialGradient id="blackFur" cx="40%" cy="40%">
+                <stop
+                  offset="0%"
+                  style="stop-color: #4a4a4a; stop-opacity: 1"
+                />
+                <stop
+                  offset="60%"
+                  style="stop-color: #2a2a2a; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #0a0a0a; stop-opacity: 1"
+                />
+              </radialGradient>
+
+              <!-- Gradiente para pelaje blanco -->
+              <radialGradient id="whiteFur" cx="30%" cy="30%">
+                <stop
+                  offset="0%"
+                  style="stop-color: #ffffff; stop-opacity: 1"
+                />
+                <stop
+                  offset="70%"
+                  style="stop-color: #f5f5f5; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #e8e8e8; stop-opacity: 1"
+                />
+              </radialGradient>
+            </defs>
+
+            <!-- Sombra -->
+            <ellipse
+              cx="150"
+              cy="335"
+              rx="70"
+              ry="12"
+              fill="#000"
+              opacity="0.2"
+            />
+
+            <!-- Cola peluda grande (característica Border Collie) -->
+            <g>
+              <path
+                d="M 210 240 Q 250 250 270 230 Q 285 215 290 190"
+                stroke="url(#blackFur)"
+                stroke-width="35"
+                fill="none"
+                stroke-linecap="round"
+              >
+                <animate
+                  attributeName="d"
+                  values="M 210 240 Q 250 250 270 230 Q 285 215 290 190;
+                                             M 210 240 Q 255 255 275 235 Q 290 220 295 195;
+                                             M 210 240 Q 250 250 270 230 Q 285 215 290 190"
+                  dur="2s"
+                  repeatCount="indefinite"
+                />
+              </path>
+              <!-- Punta blanca de la cola -->
+              <ellipse cx="290" cy="190" rx="18" ry="22" fill="url(#whiteFur)">
+                <animate
+                  attributeName="cx"
+                  values="290;295;290"
+                  dur="2s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="cy"
+                  values="190;195;190"
+                  dur="2s"
+                  repeatCount="indefinite"
+                />
+              </ellipse>
+            </g>
+
+            <!-- Pata trasera derecha (blanca) -->
+            <rect
+              x="175"
+              y="260"
+              width="22"
+              height="70"
+              rx="11"
+              fill="url(#whiteFur)"
+            />
+            <ellipse cx="186" cy="328" rx="14" ry="8" fill="#f0f0f0" />
+
+            <!-- Pata trasera izquierda (blanca) -->
+            <rect
+              x="140"
+              y="260"
+              width="22"
+              height="70"
+              rx="11"
+              fill="url(#whiteFur)"
+            />
+            <ellipse cx="151" cy="328" rx="14" ry="8" fill="#f0f0f0" />
+
+            <!-- Cuerpo negro peludo -->
+            <ellipse cx="160" cy="230" rx="65" ry="75" fill="url(#blackFur)" />
+
+            <!-- Pecho blanco (Border Collie) -->
+            <ellipse cx="135" cy="240" rx="40" ry="55" fill="url(#whiteFur)" />
+
+            <!-- Pata delantera derecha (blanca) -->
+            <rect
+              x="115"
+              y="260"
+              width="22"
+              height="70"
+              rx="11"
+              fill="url(#whiteFur)"
+            />
+            <ellipse cx="126" cy="328" rx="14" ry="8" fill="#f0f0f0" />
+            <!-- Pata delantera izquierda (blanca) -->
+            <rect
+              x="100"
+              y="260"
+              width="22"
+              height="70"
+              rx="11"
+              fill="url(#whiteFur)"
+            />
+            <ellipse cx="111" cy="328" rx="14" ry="8" fill="#f0f0f0" />
+
+            <!-- Cuello negro peludo -->
+            <ellipse cx="130" cy="180" rx="45" ry="40" fill="url(#blackFur)" />
+
+            <!-- Cuello/pecho blanco frontal -->
+            <ellipse cx="120" cy="190" rx="28" ry="35" fill="url(#whiteFur)" />
+
+            <!-- Cabeza negra -->
+            <ellipse cx="120" cy="120" rx="50" ry="55" fill="url(#blackFur)" />
+
+            <!-- Frente blanca característica -->
+            <ellipse cx="120" cy="115" rx="22" ry="40" fill="url(#whiteFur)" />
+
+            <!-- Hocico blanco -->
+            <ellipse cx="120" cy="140" rx="25" ry="22" fill="url(#whiteFur)" />
+
+            <!-- Nariz negra -->
+            <ellipse cx="120" cy="145" rx="10" ry="8" fill="#0a0a0a" />
+            <ellipse
+              cx="117"
+              cy="143"
+              rx="3"
+              ry="2"
+              fill="#555"
+              opacity="0.8"
+            />
+
+            <!-- Boca sonriente -->
+            <path
+              d="M 120 150 Q 130 156 137 153"
+              stroke="#0a0a0a"
+              stroke-width="2.5"
+              fill="none"
+              stroke-linecap="round"
+            />
+            <path
+              d="M 120 150 Q 110 156 103 153"
+              stroke="#0a0a0a"
+              stroke-width="2.5"
+              fill="none"
+              stroke-linecap="round"
+            />
+
+            <!-- Lengua -->
+            <ellipse cx="120" cy="158" rx="6" ry="9" fill="#ff6b9d" />
+
+            <!-- Oreja izquierda triangular negra (erecta) -->
+            <path d="M 85 90 L 75 45 L 100 75 Z" fill="url(#blackFur)" />
+            <path d="M 88 85 L 80 52 L 98 78 Z" fill="#1a1a1a" opacity="0.6" />
+
+            <!-- Oreja derecha triangular negra (erecta) -->
+            <path d="M 155 90 L 165 45 L 140 75 Z" fill="url(#blackFur)" />
+            <path
+              d="M 152 85 L 160 52 L 142 78 Z"
+              fill="#1a1a1a"
+              opacity="0.6"
+            />
+
+            <!-- Ojo izquierdo expresivo -->
+            <ellipse cx="100" cy="110" rx="12" ry="14" fill="#fff" />
+            <ellipse cx="100" cy="110" rx="10" ry="12" fill="#3a2010" />
+            <circle cx="101" cy="109" r="7" fill="#0a0a0a" />
+            <ellipse
+              cx="103"
+              cy="107"
+              rx="3"
+              ry="4"
+              fill="#ffffff"
+              opacity="1"
+            />
+            <ellipse
+              cx="102"
+              cy="105"
+              rx="1.5"
+              ry="2"
+              fill="#ffffff"
+              opacity="0.8"
+            />
+
+            <!-- Ojo derecho expresivo -->
+            <ellipse cx="140" cy="110" rx="12" ry="14" fill="#fff" />
+            <ellipse cx="140" cy="110" rx="10" ry="12" fill="#3a2010" />
+            <circle cx="139" cy="109" r="7" fill="#0a0a0a" />
+            <ellipse
+              cx="137"
+              cy="107"
+              rx="3"
+              ry="4"
+              fill="#ffffff"
+              opacity="1"
+            />
+            <ellipse
+              cx="138"
+              cy="105"
+              rx="1.5"
+              ry="2"
+              fill="#ffffff"
+              opacity="0.8"
+            />
+
+            <!-- Detalles de pelaje (textura) -->
+            <path
+              d="M 90 95 Q 88 90 86 88"
+              stroke="#1a1a1a"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+              opacity="0.4"
+            />
+            <path
+              d="M 150 95 Q 152 90 154 88"
+              stroke="#1a1a1a"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+              opacity="0.4"
+            />
+            <path
+              d="M 120 85 Q 120 80 120 78"
+              stroke="#fff"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+              opacity="0.6"
+            />
+
+            <!-- Manchas negras en la cara (patrón Border Collie) -->
+
+            <!-- Pelaje extra peludo en el cuello -->
+          </svg>
+        </div>
+      </div>
+
+      <div class="selector-section">
+        <h2>💻 Computador Gamer</h2>
+        <div class="options">
+          <button class="option-btn" onclick="selectItem('pc', '🖥️', this)">
+            <span class="option-icon">🖥️</span>
+            <span>Setup RGB</span>
+          </button>
+          <button class="option-btn" onclick="selectItem('pc', '💻', this)">
+            <span class="option-icon">💻</span>
+            <span>Laptop Gaming</span>
+          </button>
+          <button class="option-btn" onclick="selectItem('pc', '🎮', this)">
+            <span class="option-icon">🎮</span>
+            <span>Consola + PC</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="selector-section">
+        <h2>🎨 Arte Urbano</h2>
+        <div class="options">
+          <button class="option-btn" onclick="selectItem('art', '🖼️', this)">
+            <span class="option-icon">🖼️</span>
+            <span>Graffiti</span>
+          </button>
+          <button class="option-btn" onclick="selectItem('art', '🎭', this)">
+            <span class="option-icon">🎭</span>
+            <span>Pop Art</span>
+          </button>
+          <button class="option-btn" onclick="selectItem('art', '🌃', this)">
+            <span class="option-icon">🌃</span>
+            <span>Cityscape</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="selector-section">
+        <h2>🌿 Plantas</h2>
+        <div class="options">
+          <button class="option-btn" onclick="selectItem('plant', '🪴', this)">
+            <span class="option-icon">🪴</span>
+            <span>Suculentas</span>
+          </button>
+          <button class="option-btn" onclick="selectItem('plant', '🌱', this)">
+            <span class="option-icon">🌱</span>
+            <span>Bambú</span>
+          </button>
+          <button class="option-btn" onclick="selectItem('plant', '🍃', this)">
+            <span class="option-icon">🍃</span>
+            <span>Monstera</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="selector-section">
+        <h2>🪑 Muebles Wabi-Sabi</h2>
+        <div class="options">
+          <button
+            class="option-btn"
+            onclick="selectItem('furniture', '🪑', this)"
+          >
+            <span class="option-icon">🪑</span>
+            <span>Silla Minimalista</span>
+          </button>
+          <button
+            class="option-btn"
+            onclick="selectItem('furniture', '🛋️', this)"
+          >
+            <span class="option-icon">🛋️</span>
+            <span>Sofá Japonés</span>
+          </button>
+          <button
+            class="option-btn"
+            onclick="selectItem('furniture', 'table', this)"
+          >
+            <span class="option-icon" style="font-size: 1.4em">🪵</span>
+            <span>Mesa de Madera</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="surpriseModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>FELIZ CUMPLEAÑOS AMOR 💕💕💕💕💕</h2>
+        <p>Tienes un giftcard de</p>
+        <div class="giftcard-amount">$100.000 CLP</div>
+        <p>¡Para decorar tu oficina!</p>
+        <p style="margin-top: 20px; font-size: 1.5em">🎁🎉🎊</p>
+      </div>
+    </div>
+
+    <script>
+      let items = [];
+      let itemIdCounter = 0;
+      let draggedItem = null;
+      let offsetX = 0;
+      let offsetY = 0;
+      let selectedCounts = {
+        pc: 0,
+        art: 0,
+        plant: 0,
+        furniture: 0,
+      };
+
+      // Item templates with sizes
+      const itemTemplates = {
+        pc: {
+          "🖥️": { width: 80, height: 80, emoji: "🖥️", type: "emoji" },
+          "💻": { width: 70, height: 60, emoji: "💻", type: "emoji" },
+          "🎮": { width: 60, height: 60, emoji: "🎮", type: "emoji" },
+        },
+        art: {
+          "🖼️": { width: 60, height: 80, emoji: "🖼️", type: "emoji" },
+          "🎭": { width: 50, height: 50, emoji: "🎭", type: "emoji" },
+          "🌃": { width: 70, height: 50, emoji: "🌃", type: "emoji" },
+        },
+        plant: {
+          "🪴": { width: 50, height: 70, emoji: "🪴", type: "emoji" },
+          "🌱": { width: 40, height: 60, emoji: "🌱", type: "emoji" },
+          "🍃": { width: 60, height: 80, emoji: "🍃", type: "emoji" },
+        },
+        furniture: {
+          "🪑": { width: 60, height: 70, emoji: "🪑", type: "emoji" },
+          "🛋️": { width: 100, height: 70, emoji: "🛋️", type: "emoji" },
+          table: { width: 120, height: 80, emoji: "table", type: "svg" },
+        },
+      };
+
+      function selectItem(category, icon, button) {
+        if (button.classList.contains("selected")) {
+          button.classList.remove("selected");
+        } else {
+          button.classList.add("selected");
+        }
+
+        addItemToOffice(category, icon);
+        updateCounts();
+
+        if (items.length >= 3) {
+          setTimeout(() => {
+            document.getElementById("dog").classList.add("visible");
+          }, 500);
+        }
+      }
+
+      function addItemToOffice(category, icon) {
+        const template = itemTemplates[category][icon];
+        const id = itemIdCounter++;
+
+        const item = {
+          id: id,
+          category: category,
+          icon: icon,
+          x: Math.random() * 70 + 10,
+          y: Math.random() * 50 + 20,
+          scale: 1,
+          rotation: 0,
+          ...template,
+        };
+
+        items.push(item);
+        selectedCounts[category]++;
+
+        renderItems();
+      }
+
+      function renderItems() {
+        const container = document.getElementById("selectedItems");
+        container.innerHTML = "";
+
+        items.forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.className = "item-display";
+          itemDiv.style.left = item.x + "%";
+          itemDiv.style.top = item.y + "%";
+          itemDiv.style.width = item.width * item.scale + "px";
+          itemDiv.style.height = item.height * item.scale + "px";
+          itemDiv.style.zIndex = Math.floor(item.y * 10);
+          itemDiv.dataset.itemId = item.id;
+
+          // Create item content with rotation
+          const content = document.createElement("div");
+          content.className = "item-content";
+          content.style.transform = `rotate(${item.rotation}deg)`;
+
+          // Check if it's an emoji or SVG
+          if (item.type === "svg" && item.emoji === "table") {
+            // Create wooden table SVG
+            content.innerHTML = `
+                        <svg viewBox="0 0 120 80" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Mesa de madera -->
+                            <!-- Superficie de la mesa -->
+                            <rect x="10" y="15" width="100" height="12" rx="2" fill="#8B6F47" stroke="#6B4F27" stroke-width="1"/>
+                            <rect x="10" y="15" width="100" height="4" rx="2" fill="#A0825A" opacity="0.6"/>
+                            
+                            <!-- Textura de madera -->
+                            <line x1="15" y1="17" x2="105" y2="17" stroke="#6B4F27" stroke-width="0.5" opacity="0.3"/>
+                            <line x1="15" y1="20" x2="105" y2="20" stroke="#6B4F27" stroke-width="0.5" opacity="0.3"/>
+                            <line x1="15" y1="23" x2="105" y2="23" stroke="#6B4F27" stroke-width="0.5" opacity="0.3"/>
+                            
+                            <!-- Pata delantera izquierda -->
+                            <rect x="18" y="27" width="8" height="48" rx="1" fill="#7A5F3F" stroke="#5A3F1F" stroke-width="1"/>
+                            <rect x="18" y="27" width="3" height="48" fill="#9A7F5F" opacity="0.5"/>
+                            
+                            <!-- Pata delantera derecha -->
+                            <rect x="94" y="27" width="8" height="48" rx="1" fill="#7A5F3F" stroke="#5A3F1F" stroke-width="1"/>
+                            <rect x="94" y="27" width="3" height="48" fill="#9A7F5F" opacity="0.5"/>
+                            
+                            <!-- Pata trasera izquierda -->
+                            <rect x="22" y="27" width="7" height="48" rx="1" fill="#6A4F2F" stroke="#4A2F0F" stroke-width="1"/>
+                            
+                            <!-- Pata trasera derecha -->
+                            <rect x="91" y="27" width="7" height="48" rx="1" fill="#6A4F2F" stroke="#4A2F0F" stroke-width="1"/>
+                            
+                            <!-- Sombra debajo de la mesa -->
+                            <ellipse cx="60" cy="76" rx="45" ry="3" fill="#000" opacity="0.2"/>
+                        </svg>
+                    `;
+          } else {
+            // Regular emoji
+            content.style.fontSize =
+              Math.min(item.width, item.height) * item.scale + "px";
+            content.textContent = item.emoji;
+          }
+
+          // Create controls
+          const controls = document.createElement("div");
+          controls.className = "item-controls";
+
+          // Rotate left button
+          const rotateLeftBtn = document.createElement("button");
+          rotateLeftBtn.className = "control-btn";
+          rotateLeftBtn.innerHTML = "↶";
+          rotateLeftBtn.title = "Rotar izquierda";
+          rotateLeftBtn.onclick = (e) => {
+            e.stopPropagation();
+            rotateItem(item.id, -15);
+          };
+
+          // Rotate right button
+          const rotateRightBtn = document.createElement("button");
+          rotateRightBtn.className = "control-btn";
+          rotateRightBtn.innerHTML = "↷";
+          rotateRightBtn.title = "Rotar derecha";
+          rotateRightBtn.onclick = (e) => {
+            e.stopPropagation();
+            rotateItem(item.id, 15);
+          };
+
+          // Scale down button
+          const scaleDownBtn = document.createElement("button");
+          scaleDownBtn.className = "control-btn";
+          scaleDownBtn.innerHTML = "−";
+          scaleDownBtn.title = "Reducir";
+          scaleDownBtn.onclick = (e) => {
+            e.stopPropagation();
+            scaleItem(item.id, -0.2);
+          };
+
+          // Scale up button
+          const scaleUpBtn = document.createElement("button");
+          scaleUpBtn.className = "control-btn";
+          scaleUpBtn.innerHTML = "+";
+          scaleUpBtn.title = "Agrandar";
+          scaleUpBtn.onclick = (e) => {
+            e.stopPropagation();
+            scaleItem(item.id, 0.2);
+          };
+
+          // Delete button
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "control-btn";
+          deleteBtn.innerHTML = "×";
+          deleteBtn.title = "Eliminar";
+          deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            removeItem(item.id);
+          };
+
+          controls.appendChild(rotateLeftBtn);
+          controls.appendChild(rotateRightBtn);
+          controls.appendChild(scaleDownBtn);
+          controls.appendChild(scaleUpBtn);
+          controls.appendChild(deleteBtn);
+
+          itemDiv.appendChild(controls);
+          itemDiv.appendChild(content);
+
+          itemDiv.addEventListener("mousedown", startDrag);
+          itemDiv.addEventListener("touchstart", startDrag);
+
+          container.appendChild(itemDiv);
+        });
+      }
+
+      function rotateItem(itemId, degrees) {
+        const item = items.find((i) => i.id === itemId);
+        if (item) {
+          item.rotation = (item.rotation + degrees) % 360;
+          renderItems();
+        }
+      }
+
+      function scaleItem(itemId, delta) {
+        const item = items.find((i) => i.id === itemId);
+        if (item) {
+          item.scale = Math.max(0.5, Math.min(2.5, item.scale + delta));
+          renderItems();
+        }
+      }
+
+      function startDrag(e) {
+        e.preventDefault();
+        const itemId = parseInt(e.currentTarget.dataset.itemId);
+        const item = items.find((i) => i.id === itemId);
+
+        if (!item) return;
+
+        draggedItem = item;
+        e.currentTarget.classList.add("dragging");
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        const containerRect = document
+          .getElementById("selectedItems")
+          .getBoundingClientRect();
+
+        if (e.type === "touchstart") {
+          offsetX = e.touches[0].clientX - rect.left;
+          offsetY = e.touches[0].clientY - rect.top;
+        } else {
+          offsetX = e.clientX - rect.left;
+          offsetY = e.clientY - rect.top;
+        }
+
+        document.addEventListener("mousemove", drag);
+        document.addEventListener("mouseup", stopDrag);
+        document.addEventListener("touchmove", drag);
+        document.addEventListener("touchend", stopDrag);
+      }
+
+      function drag(e) {
+        if (!draggedItem) return;
+
+        const containerRect = document
+          .getElementById("selectedItems")
+          .getBoundingClientRect();
+        let clientX, clientY;
+
+        if (e.type === "touchmove") {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+
+        const x = clientX - containerRect.left - offsetX;
+        const y = clientY - containerRect.top - offsetY;
+
+        draggedItem.x = (x / containerRect.width) * 100;
+        draggedItem.y = (y / containerRect.height) * 100;
+
+        draggedItem.x = Math.max(0, Math.min(95, draggedItem.x));
+        draggedItem.y = Math.max(0, Math.min(90, draggedItem.y));
+
+        renderItems();
+      }
+
+      function stopDrag(e) {
+        if (draggedItem) {
+          const itemDiv = document.querySelector(
+            `[data-item-id="${draggedItem.id}"]`,
+          );
+          if (itemDiv) {
+            itemDiv.classList.remove("dragging");
+          }
+        }
+
+        draggedItem = null;
+
+        document.removeEventListener("mousemove", drag);
+        document.removeEventListener("mouseup", stopDrag);
+        document.removeEventListener("touchmove", drag);
+        document.removeEventListener("touchend", stopDrag);
+      }
+
+      function removeItem(itemId) {
+        const item = items.find((i) => i.id === itemId);
+        if (item) {
+          selectedCounts[item.category]--;
+          items = items.filter((i) => i.id !== itemId);
+          renderItems();
+          updateCounts();
+
+          if (items.length < 3) {
+            document.getElementById("dog").classList.remove("visible");
+          }
+        }
+      }
+
+      function updateCounts() {
+        document.querySelectorAll(".option-btn").forEach((btn) => {
+          const badge = btn.querySelector(".count-badge");
+          if (badge) {
+            badge.remove();
+          }
+        });
+
+        for (let category in selectedCounts) {
+          if (selectedCounts[category] > 0) {
+            const categoryButtons = document.querySelectorAll(
+              `[onclick*="'${category}'"]`,
+            );
+
+            if (categoryButtons.length > 0) {
+              const firstBtn = categoryButtons[0].closest(".selector-section");
+              if (firstBtn) {
+                firstBtn.querySelectorAll(".option-btn").forEach((btn) => {
+                  if (!btn.querySelector(".count-badge")) {
+                    const badge = document.createElement("span");
+                    badge.className = "count-badge";
+                    badge.textContent = selectedCounts[category];
+                    btn.appendChild(badge);
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
+
+      function showSurprise() {
+        document.getElementById("surpriseModal").style.display = "block";
+
+        for (let i = 0; i < 60; i++) {
+          setTimeout(() => createConfetti(), i * 30);
+        }
+      }
+
+      function closeModal() {
+        document.getElementById("surpriseModal").style.display = "none";
+      }
+
+      function createConfetti() {
+        const confetti = document.createElement("div");
+        confetti.style.position = "fixed";
+        confetti.style.left = Math.random() * 100 + "%";
+        confetti.style.top = "-10px";
+        confetti.style.fontSize = Math.random() * 10 + 20 + "px";
+        confetti.textContent = ["💕", "🎉", "🎊", "✨", "💝", "🎁", "🎈"][
+          Math.floor(Math.random() * 7)
+        ];
+        confetti.style.zIndex = "9999";
+        confetti.style.pointerEvents = "none";
+        document.body.appendChild(confetti);
+
+        let pos = -10;
+        let rotation = 0;
+        const speed = Math.random() * 2 + 1;
+        const rotationSpeed = Math.random() * 10 + 5;
+
+        const interval = setInterval(() => {
+          pos += speed;
+          rotation += rotationSpeed;
+          confetti.style.top = pos + "px";
+          confetti.style.transform = `rotate(${rotation}deg)`;
+          confetti.style.opacity = 1 - pos / window.innerHeight;
+
+          if (pos > window.innerHeight) {
+            clearInterval(interval);
+            confetti.remove();
+          }
+        }, 20);
+      }
+
+      window.onclick = function (event) {
+        const modal = document.getElementById("surpriseModal");
+        if (event.target == modal) {
+          closeModal();
+        }
+      };
+    </script>
+  </body>
+</html>
